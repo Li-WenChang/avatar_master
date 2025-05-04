@@ -157,10 +157,10 @@ python plant, scene_graph = AddMultibodyPlantSceneGraph(builder, 0.0)
 
 Following lines parse a iiwa robot to `MultiboyPlant` and fix the base link to world frame, without this the whole robot will free fall.
 ```phtyon
-# Load the left and right iiwa robots using the parser
+
 iiwa_url = "package://drake_models/iiwa_description/sdf/iiwa14_no_collision.sdf"
 
-# Load the left iiwa model
+# Load the iiwa model
 (iiwa,) = parser.AddModels(url=iiwa_url)
 
 plant.WeldFrames(
