@@ -43,21 +43,21 @@ meshcat = StartMeshcat()
 
 builder = DiagramBuilder()
 
-plant, scene_graph = AddMultibodyPlantSceneGraph(builder, 0.0)
+plant, scene_graph = AddMultibodyPlantSceneGraph(builder, time_step = 0.001)
 
 # Create a single Parser instance for the plant
 parser = Parser(plant)
 
 
-# Load the left and right iiwa robots using the parser
+
 iiwa_url = "package://drake_models/iiwa_description/sdf/iiwa14_no_collision.sdf"
 
-# Load the left iiwa model
-(left_iiwa,) = parser.AddModels(url=iiwa_url)
+# Load the iiwa model
+(iiwa,) = parser.AddModels(url=iiwa_url)
 
 plant.WeldFrames(
     frame_on_parent_F=plant.world_frame(),
-    frame_on_child_M=plant.GetFrameByName("iiwa_link_0", left_iiwa),
+    frame_on_child_M=plant.GetFrameByName("iiwa_link_0", iiwa),
     X_FM=RigidTransform(RollPitchYaw(np.array([0.0, 0.0, 0.0]) * np.pi / 180), [0.5, 0.5, 0.0])
 )
 
@@ -69,7 +69,7 @@ diagram = builder.Build()
 #--------------------------------------------------------------------------------------------
 png_data = pydot.graph_from_dot_data(diagram.GetGraphvizString(max_depth=2))[0].create_png()
 
-#Save the SVG to a file
+#Save the PNG to a file
 with open("Parsing_Diagram.png", "wb") as f:
     f.write(png_data)
 
