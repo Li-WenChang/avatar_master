@@ -64,8 +64,9 @@ plant.WeldFrames(
 plant.Finalize()
 
 AddDefaultVisualization(builder=builder, meshcat=meshcat)
-
 diagram = builder.Build()
+diagram_context = diagram.CreateDefaultContext()
+diagram.SetDefaultContext(diagram_context)
 #--------------------------------------------------------------------------------------------
 png_data = pydot.graph_from_dot_data(diagram.GetGraphvizString(max_depth=2))[0].create_png()
 
@@ -75,7 +76,6 @@ with open("Parsing_Diagram.png", "wb") as f:
 
 print("Parsing_Diagram.png")
 #-----------------------------------------------------------------------------------------------
-diagram_context = diagram.CreateDefaultContext()
 simulator = Simulator(diagram, diagram_context)
 #simulator.Initialize()
 simulator.set_target_realtime_rate(1.0)
