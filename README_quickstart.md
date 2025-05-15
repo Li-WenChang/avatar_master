@@ -237,7 +237,7 @@ builder.Connect(IDC.get_output_port_generalized_force(), plant.get_applied_gener
 # get feedback from robots
 builder.Connect(plant.get_state_output_port(iiwa), IDC.get_input_port_estimated_state())
 ```
-That’s all it takes to set up a basic motion controller! In next section, I will discuss on how to customize your system.
+That’s all it takes to set up a basic motion controller! Again, I recommend commenting out the `AddDefaultVisualization` line to generate a cleaner diagram and ensure that what you're doing matches what you think is happening. In next section, I will discuss on how to customize your system.
 
 > **Note:**  
 > If your scene includes more than just the robot (e.g., a box that the robot interacts with), you'll need to set up a separate plant—usually called the *controller plant*. In that case, you'll parse only the robot into the controller plant and pass it as the first argument to the `InverseDynamicsController`.  
