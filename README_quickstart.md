@@ -193,3 +193,54 @@ That's because the following line automatically adds several default visualizati
 AddDefaultVisualization(builder=builder, meshcat=meshcat)
 ```
 If you comment out this line, the diagram will become much simpler.
+
+### 2.2 Controlling Robots (Motion Control)
+
+This section is more interesting because the robot can finally move, and we get to see how Drake is actually used in practice—at least the way *I* use it. One of Drake's core features is its **System Framework**. Instead of writing imperative Python-style logic to control a robot, you build systems (either using Drake's built-in systems or your own custom ones) and wire them together.  
+
+In this section, we introduce three new systems:
+
+- `InverseDynamicsController`: for computing joint torques to achieve a desired motion
+- `ConstantVectorSource`: for supplying the desired joint positions and velocities to the controller
+- `LogVectorOutput`: for logging data, which is useful for debugging
+
+Only the first two are required for robot control. The third one is optional, but it's worth demonstrating because it shows how easy it is to log data in Drake.
+
+#### Code Explanation
+
+The following code declares two systems: `InverseDynamicsController` and `ConstantVectorSource`, and adds them to the diagram. In Drake terminology, a *diagram* is a meta-system composed of multiple interconnected subsystems.
+
+```python
+idc = InverseDynamicsController(plant, 
+                                np.ones((U, 1)) * Kp,
+                                np.ones((U, 1)) * Ki,
+                                np.ones((U, 1)) * Kd,
+                                False)
+IDC = builder.AddSystem(idc)
+
+joint_command_source = ConstantVectorSource(desired_state)
+desired_state_source = builder.AddSystem(joint_command_source)
+```
+After we add these systems to our diagram, we need to wire them up. Remember that the first argument of `builder.Connect()` is always an **output port** and the second argument is **input port**. Because the set up of `LogVectorOutput` is simpler, the declaration and wiring just need one line of code. 
+
+```phtyon
+# set up a logging system, using a system called LogVectorOutput
+# and wire it up to the data we want to save, in this case it's the joint torque
+torque_logger = LogVectorOutput(IDC.get_output_port_generalized_force(), builder)
+
+# feed joint command to controller
+builder.Connect(desired_state_source.get_output_port(), IDC.get_input_port_desired_state())
+
+# send joint torque computed by the controller to robot
+builder.Connect(IDC.get_output_port_generalized_force(), plant.get_applied_generalized_force_input_port())
+
+# get feedback from robots
+builder.Connect(plant.get_state_output_port(iiwa), IDC.get_input_port_estimated_state())
+```
+That’s all it takes to set up a basic motion controller! In next section, I will discuss on how to customize your system.
+
+> **Note:**  
+> If your scene includes more than just the robot (e.g., a box that the robot interacts with), you'll need to set up a separate plant—usually called the *controller plant*. In that case, you'll parse only the robot into the controller plant and pass it as the first argument to the `InverseDynamicsController`.  
+> For more on why this is necessary, see this helpful Stack Overflow post:  
+> [URDF file parsing error in Drake – actuators not being instantiated](https://stackoverflow.com/questions/75917723/urdf-file-parsing-error-in-drake-actuators-not-being-instantiated)  
+> Russ Tedrake’s response (he’s the creator of Drake) explains it in detail.
